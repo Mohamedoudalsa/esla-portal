@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بوابة تسجيل العضوية | الجمعية المصرية لمعماريي تنسيق الموقع (ESLA)</title>
+  
+  <!-- Fonts: Cairo for Arabic, Inter for English -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            forest: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              300: '#86efac',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+            sand: {
+              50: '#fafaf9',
+              100: '#f5f5f4',
+              200: '#e7e5e4',
+              300: '#d6d3d1',
+              400: '#a8a29e',
+              500: '#78716c',
+            },
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309',
+            }
+          },
+          fontFamily: {
+            cairo: ['Cairo', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18, ReactDOM & Babel -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+    }
+    body[dir="ltr"] {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <div id="root"></div>
+
+  <!-- React Application Script -->
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // Translations Dictionary
+    const t = {
+      ar: {
+        societyName: "الجمعية المصرية لمعماريي تنسيق الموقع",
+        societySubtitle: "Egyptian Society of Landscape Architects (ESLA)",
+        portalTitle: "بوابة تسجيل العضوية واعتماد المستندات",
+        navTiers: "فئات العضوية",
+        navUpload: "رفع المستندات",
+        navStatus: "حالة الطلب",
+        navAdmin: "لوحة تحكم الإدارة",
+        login: "تسجيل الدخول",
+        register: "إنشاء حساب جديد",
+        logout: "تسجيل الخروج",
+        quickDemo: "حسابات تجريبية سريعة:",
+        demoAdmin: "مسؤول النظام (Admin)",
+        demoStudent: "متقدم طالب",
+        demoGraduate: "متقدمة خريجة (تحتاج استكمال)",
+        demoProfessional: "متقدم محترف",
+        demoConsultant: "استشاري معتمد",
+        email: "البريد الإلكتروني",
+        password: "كلمة المرور",
+        fullNameAr: "الاسم الرباعي باللغة العربية",
+        fullNameEn: "الاسم الكامل باللغة الإنجليزية",
+        phoneWhatsapp: "رقم الهاتف / واتساب (مصر)",
+        alreadyHaveAccount: "لديك حساب بالفعل؟ تسجيل الدخول",
+        noAccount: "ليس لديك حساب؟ إنشاء حساب جديد",
+        selectTierTitle: "اختر فئة العضوية المناسبة",
+        selectTierSubtitle: "يرجى تحديد الفئة التي تطابق مؤهلك الأكاديمي وسنوات خبرتك المهنية ونقابة المهندسين المصرية",
+        currentTier: "الفئة الحالية المحددة:",
+        changeTier: "تغيير الفئة",
+        selectThisTier: "اختيار هذه الفئة والبدء برفع المستندات",
+        annualFee: "رسوم الاشتراك السنوي:",
+        egp: "ج.م",
+        requiredDocsForTier: "المستندات المطلوبة لهذه الفئة:",
+        uploadCenterTitle: "مركز رفع المستندات الرقمية",
+        uploadCenterSubtitle: "يرجى رفع المستندات بصيغة PDF أو صور واضحة (JPG, PNG) بحد أقصى 10 ميجابايت لكل ملف",
+        dragDropText: "اسحب الملف وأفلته هنا أو اضغط للاستعراض",
+        acceptedFormats: "الصيغ المقبولة: PDF, JPG, PNG (أقصى حجم 10MB)",
+        uploadedFile: "تم الرفع:",
+        previewDoc: "معاينة",
+        downloadDoc: "تحميل",
+        deleteDoc: "حذف",
+        reuploadDoc: "استبدال / إعادة الرفع",
+        submitForReview: "إرسال الملف كاملاً للاعتماد والفحص الفني",
+        submitSuccessMsg: "تم إرسال طلبك بنجاح للجنة القيد والعضوية!",
+        appStatusTitle: "متابعة مسار الطلب",
+        tierPending: "بانتظار استكمال المستندات",
+        tierUnderReview: "قيد الفحص والتدقيق الفني",
+        tierApproved: "تم اعتماد العضوية رسمياً",
+        tierNeedsAction: "مطلوب استكمال أو إعادة رفع مستندات",
+        tierRejected: "الطلب غير مستوف للشروط",
+        adminNotesAlert: "ملاحظات وتوجيهات لجنة القيد:",
+        adminOverview: "لوحة متابعة وفحص طلبات العضوية",
+        searchPlaceholder: "بحث بالاسم، البريد الإلكتروني، أو رقم الهاتف...",
+        filterAll: "جميع الفئات",
+        filterStatusAll: "جميع الحالات",
+        colApplicant: "اسم المتقدم وبيانات التواصل",
+        colTier: "فئة العضوية",
+        colDate: "تاريخ التقديم",
+        colStatus: "حالة الطلب",
+        colActions: "الإجراءات",
+        reviewApplicantBtn: "فحص المستندات",
+        modalApplicantTitle: "فحص ملف المتقدم:",
+        applicantInfo: "بيانات المهندس / المتقدم",
+        whatsappChat: "مراسلة عبر واتساب",
+        submittedDocs: "المستندات المرفوعة للفحص:",
+        noDocsUploaded: "لم يتم رفع أي مستندات بعد من قبل المتقدم.",
+        decisionTitle: "قرار لجنة العضوية:",
+        decisionApprove: "اعتماد العضوية (Approve)",
+        decisionNeedsAction: "طلب استكمال مستندات (Needs Action)",
+        decisionReject: "رفض الطلب (Reject)",
+        notesPlaceholder: "اكتب هنا الملاحظات أو أسباب طلب إعادة الرفع (ستظهر للمتقدم في لوحته)...",
+        saveDecision: "حفظ القرار وإشعار المتقدم",
+        statsTotal: "إجمالي الطلبات",
+        statsPending: "قيد المراجعة",
+        statsApproved: "تم اعتمادها",
+        statsNeedsAction: "تحتاج إجراء",
+        statsUnderVerification: "قيد التدقيق الفني",
+        step1: "1. اختيار الفئة",
+        step2: "2. رفع المستندات",
+        step3: "3. التدقيق الفني",
+        step4: "4. الاعتماد الرسمي",
+        langToggle: "English"
+      },
+      en: {
+        societyName: "Egyptian Society of Landscape Architects",
+        societySubtitle: "الجمعية المصرية لمعماريي تنسيق الموقع (ESLA)",
+        portalTitle: "Membership Registration & Document Submission Portal",
+        navTiers: "Membership Tiers",
+        navUpload: "Upload Documents",
+        navStatus: "Application Status",
+        navAdmin: "Admin Dashboard",
+        login: "Sign In",
+        register: "Create Account",
+        logout: "Sign Out",
+        quickDemo: "Quick Demo Accounts:",
+        demoAdmin: "System Admin",
+        demoStudent: "Student Applicant",
+        demoGraduate: "Graduate (Needs Action)",
+        demoProfessional: "Professional Member",
+        demoConsultant: "Consultant Approved",
+        email: "Email Address",
+        password: "Password",
+        fullNameAr: "Full Name (Arabic)",
+        fullNameEn: "Full Name (English)",
+        phoneWhatsapp: "Phone / WhatsApp (Egypt)",
+        alreadyHaveAccount: "Already have an account? Sign In",
+        noAccount: "Don't have an account? Register now",
+        selectTierTitle: "Select Your Membership Category",
+        selectTierSubtitle: "Choose the grade matching your academic qualification, years of practice, and Egyptian Syndicate registration",
+        currentTier: "Current Selected Tier:",
+        changeTier: "Change Tier",
+        selectThisTier: "Select Tier & Proceed to Documents",
+        annualFee: "Annual Membership Fee:",
+        egp: "EGP",
+        requiredDocsForTier: "Required Documents for this Tier:",
+        uploadCenterTitle: "Digital Document Submission Center",
+        uploadCenterSubtitle: "Upload your official documents in PDF or clear images (JPG, PNG) up to 10MB per file",
+        dragDropText: "Drag and drop your file here, or click to browse",
+        acceptedFormats: "Accepted formats: PDF, JPG, PNG (Max size: 10MB)",
+        uploadedFile: "Uploaded:",
+        previewDoc: "Preview",
+        downloadDoc: "Download",
+        deleteDoc: "Delete",
+        reuploadDoc: "Replace / Re-upload",
+        submitForReview: "Submit Application for Final Verification",
+        submitSuccessMsg: "Your application has been submitted to the verification committee!",
+        appStatusTitle: "Application Progress Tracker",
+        tierPending: "Awaiting Document Upload",
+        tierUnderReview: "Under Technical Verification",
+        tierApproved: "Membership Officially Approved",
+        tierNeedsAction: "Action Required / Re-upload Needed",
+        tierRejected: "Application Rejected",
+        adminNotesAlert: "Membership Board Notes & Instructions:",
+        adminOverview: "Applicant Document Review Board",
+        searchPlaceholder: "Search by applicant name, email, or phone...",
+        filterAll: "All Categories",
+        filterStatusAll: "All Statuses",
+        colApplicant: "Applicant & Contact",
+        colTier: "Membership Grade",
+        colDate: "Submitted Date",
+        colStatus: "Status",
+        colActions: "Actions",
+        reviewApplicantBtn: "Review Application",
+        modalApplicantTitle: "Review Applicant Portfolio:",
+        applicantInfo: "Applicant Personal Details",
+        whatsappChat: "WhatsApp Message",
+        submittedDocs: "Submitted Verification Documents:",
+        noDocsUploaded: "No documents uploaded yet by this applicant.",
+        decisionTitle: "Board Decision:",
+        decisionApprove: "Approve Membership",
+        decisionNeedsAction: "Request Additional Documents",
+        decisionReject: "Reject Application",
+        notesPlaceholder: "Enter committee notes or specific re-upload instructions (visible to applicant)...",
+        saveDecision: "Save Decision & Notify Applicant",
+        statsTotal: "Total Applications",
+        statsPending: "Pending Review",
+        statsApproved: "Approved Members",
+        statsNeedsAction: "Needs Action",
+        statsUnderVerification: "Under Verification",
+        step1: "1. Select Grade",
+        step2: "2. Upload Docs",
+        step3: "3. Verification",
+        step4: "4. Official Approval",
+        langToggle: "عربي"
+      }
+    };
+
+    // Main App Component
+    function App() {
+      const [lang, setLang] = useState('ar');
+      const curT = t[lang];
+
+      // Auth state
+      const [token, setToken] = useState(localStorage.getItem('esla_token') || null);
+      const [user, setUser] = useState(null);
+      const [activeTab, setActiveTab] = useState('status'); // 'tiers' | 'upload' | 'status' | 'admin'
+      const [authModal, setAuthModal] = useState({ open: false, mode: 'login' }); // 'login' | 'register'
+
+      // Form state for auth
+      const [loginEmail, setLoginEmail] = useState('');
+      const [loginPassword, setLoginPassword] = useState('');
+      const [registerForm, setRegisterForm] = useState({
+        full_name_ar: '',
+        full_name_en: '',
+        email: '',
+        phone_whatsapp: '+20',
+        password: ''
+      });
+      const [authError, setAuthError] = useState('');
+      const [authLoading, setAuthLoading] = useState(false);
+
+      // Data state
+      const [tiers, setTiers] = useState([]);
+      const [application, setApplication] = useState(null);
+      const [uploadingDocType, setUploadingDocType] = useState(null);
+      const [uploadError, setUploadError] = useState('');
+
+      // Admin state
+      const [adminApps, setAdminApps] = useState([]);
+      const [adminStats, setAdminStats] = useState(null);
+      const [adminSearch, setAdminSearch] = useState('');
+      const [adminCategoryFilter, setAdminCategoryFilter] = useState('all');
+      const [adminStatusFilter, setAdminStatusFilter] = useState('all');
+      const [selectedApp, setSelectedApp] = useState(null);
+      const [adminDecision, setAdminDecision] = useState({ status: '', notes: '' });
+      const [previewModalUrl, setPreviewModalUrl] = useState(null);
+
+      // Update HTML lang and dir attribute
+      useEffect(() => {
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      }, [lang]);
+
+      // Fetch user profile if token exists
+      useEffect(() => {
+        if (token) {
+          fetchUser();
+        } else {
+          setUser(null);
+          setApplication(null);
+        }
+      }, [token]);
+
+      // Load tiers on mount
+      useEffect(() => {
+        fetch('/api/tiers')
+          .then(res => res.json())
+          .then(data => setTiers(data))
+          .catch(err => console.error("Error loading tiers:", err));
+      }, []);
+
+      // If user logged in, fetch application or admin data
+      useEffect(() => {
+        if (user) {
+          if (user.role === 'admin') {
+            fetchAdminData();
+            setActiveTab('admin');
+          } else {
+            fetchMyApplication();
+          }
+        }
+      }, [user]);
+
+      const fetchUser = async () => {
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUser(data);
+          } else {
+            handleLogout();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      const fetchMyApplication = async () => {
+        try {
+          const res = await fetch('/api/applications/my', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setApplication(data);
+            if (!data) {
+              setActiveTab('tiers');
+            } else if (data.documents.length === 0) {
+              setActiveTab('upload');
+            } else {
+              setActiveTab('status');
+            }
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      const fetchAdminData = async () => {
+        try {
+          const [appsRes, statsRes] = await Promise.all([
+            fetch(`/api/admin/applications?q=${encodeURIComponent(adminSearch)}&category=${adminCategoryFilter}&status=${adminStatusFilter}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/api/admin/stats', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            })
+          ]);
+          if (appsRes.ok) {
+            const appsData = await appsRes.json();
+            setAdminApps(appsData);
+          }
+          if (statsRes.ok) {
+            const statsData = await statsRes.json();
+            setAdminStats(statsData);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      useEffect(() => {
+        if (user && user.role === 'admin' && activeTab === 'admin') {
+          fetchAdminData();
+        }
+      }, [adminSearch, adminCategoryFilter, adminStatusFilter, activeTab]);
+
+      const handleLogin = async (e) => {
+        if (e) e.preventDefault();
+        setAuthLoading(true);
+        setAuthError('');
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: loginEmail, password: loginPassword })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('esla_token', data.access_token);
+            setToken(data.access_token);
+            setUser(data.user);
+            setAuthModal({ open: false, mode: 'login' });
+          } else {
+            setAuthError(data.detail || 'فشل تسجيل الدخول / Login failed');
+          }
+        } catch (err) {
+          setAuthError('حدث خطأ في الاتصال بالخادم / Server connection error');
+        } finally {
+          setAuthLoading(false);
+        }
+      };
+
+      const handleRegister = async (e) => {
+        e.preventDefault();
+        setAuthLoading(true);
+        setAuthError('');
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(registerForm)
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('esla_token', data.access_token);
+            setToken(data.access_token);
+            setUser(data.user);
+            setAuthModal({ open: false, mode: 'login' });
+          } else {
+            setAuthError(data.detail || 'فشل إنشاء الحساب / Registration failed');
+          }
+        } catch (err) {
+          setAuthError('حدث خطأ في الاتصال / Server error');
+        } finally {
+          setAuthLoading(false);
+        }
+      };
+
+      const handleLogout = () => {
+        localStorage.removeItem('esla_token');
+        setToken(null);
+        setUser(null);
+        setApplication(null);
+        setActiveTab('status');
+      };
+
+      // Quick demo switcher handler
+      const quickLogin = (email, pass) => {
+        setLoginEmail(email);
+        setLoginPassword(pass);
+        setAuthModal({ open: true, mode: 'login' });
+      };
+
+      // Tier Selection
+      const selectTier = async (tierId) => {
+        if (!token) {
+          setAuthModal({ open: true, mode: 'login' });
+          return;
+        }
+        try {
+          const res = await fetch('/api/applications/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ category: tierId })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setApplication(data);
+            setActiveTab('upload');
+          } else {
+            const err = await res.json();
+            alert(err.detail);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      // File upload handler
+      const handleFileUpload = async (docType, file) => {
+        if (!file) return;
+
+        // Client-side validation: Max 15MB
+        if (file.size > 15 * 1024 * 1024) {
+          setUploadError(lang === 'ar' ? 'حجم الملف يتجاوز 15 ميجابايت' : 'File exceeds 15MB limit');
+          return;
+        }
+
+        const allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png'];
+        const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+        if (!allowedExtensions.includes(ext)) {
+          setUploadError(lang === 'ar' ? 'صيغة الملف غير مدعومة (فقط PDF, JPG, PNG)' : 'File format not supported (PDF, JPG, PNG only)');
+          return;
+        }
+
+        setUploadError('');
+        setUploadingDocType(docType);
+
+        const formData = new FormData();
+        formData.append('doc_type', docType);
+        formData.append('file', file);
+
+        try {
+          const res = await fetch('/api/documents/upload', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+          if (res.ok) {
+            await fetchMyApplication();
+          } else {
+            const err = await res.json();
+            setUploadError(err.detail);
+          }
+        } catch (e) {
+          setUploadError('فشل رفع المستند / Upload failed');
+        } finally {
+          setUploadingDocType(null);
+        }
+      };
+
+      // Submit application for final verification
+      const submitForVerification = async () => {
+        try {
+          const res = await fetch('/api/applications/my/submit-for-review', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setApplication(data);
+            setActiveTab('status');
+            alert(curT.submitSuccessMsg);
+          } else {
+            const err = await res.json();
+            alert(err.detail);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      // Admin Decision Submission
+      const handleAdminSubmitDecision = async () => {
+        if (!selectedApp || !adminDecision.status) return;
+        try {
+          const res = await fetch(`/api/admin/applications/${selectedApp.id}/status`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              status: adminDecision.status,
+              admin_notes: adminDecision.notes
+            })
+          });
+          if (res.ok) {
+            await fetchAdminData();
+            setSelectedApp(null);
+            alert(lang === 'ar' ? 'تم تحديث حالة الطلب بنجاح' : 'Application status updated successfully');
+          } else {
+            const err = await res.json();
+            alert(err.detail);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      // Status badge styling helper
+      const getStatusBadge = (status) => {
+        switch (status) {
+          case 'approved':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">✓ {curT.tierApproved}</span>;
+          case 'needs_action':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">⚠ {curT.tierNeedsAction}</span>;
+          case 'under_verification':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">⏳ {curT.tierUnderReview}</span>;
+          case 'rejected':
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 border border-rose-300">✕ {curT.tierRejected}</span>;
+          default:
+            return <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-300">⏱ {curT.tierPending}</span>;
+        }
+      };
+
+      // Current active tier object for member
+      const activeTierObj = useMemo(() => {
+        if (!application || !tiers.length) return null;
+        return tiers.find(t => t.id === application.category);
+      }, [application, tiers]);
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          {/* Top Quick Demo Bar */}
+          <div className="bg-emerald-900 text-emerald-100 text-xs py-1.5 px-4 flex flex-wrap items-center justify-between border-b border-emerald-800">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-amber-400">⚡ {curT.quickDemo}</span>
+              <button onClick={() => quickLogin('admin@esla.org.eg', 'Admin@ESLA2026')} className="bg-emerald-800 hover:bg-emerald-700 px-2 py-0.5 rounded text-emerald-100 transition">
+                {curT.demoAdmin}
+              </button>
+              <button onClick={() => quickLogin('student@esla.org.eg', 'student123')} className="bg-emerald-800 hover:bg-emerald-700 px-2 py-0.5 rounded text-emerald-100 transition">
+                {curT.demoStudent}
+              </button>
+              <button onClick={() => quickLogin('yasmine@esla.org.eg', 'member123')} className="bg-emerald-800 hover:bg-emerald-700 px-2 py-0.5 rounded text-amber-200 transition">
+                {curT.demoGraduate}
+              </button>
+              <button onClick={() => quickLogin('tarek@esla.org.eg', 'member123')} className="bg-emerald-800 hover:bg-emerald-700 px-2 py-0.5 rounded text-emerald-100 transition">
+                {curT.demoProfessional}
+              </button>
+              <button onClick={() => quickLogin('sami@esla.org.eg', 'member123')} className="bg-emerald-800 hover:bg-emerald-700 px-2 py-0.5 rounded text-emerald-100 transition">
+                {curT.demoConsultant}
+              </button>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
+                className="bg-emerald-800 hover:bg-emerald-700 px-2.5 py-0.5 rounded font-semibold text-amber-300 transition flex items-center gap-1"
+              >
+                🌐 {curT.langToggle}
+              </button>
+            </div>
+          </div>
+
+          {/* Header & Navigation */}
+          <header className="glass-nav border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+              {/* Logo & Title */}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-800 to-emerald-600 flex items-center justify-center text-white font-bold text-2xl shadow-md ring-2 ring-emerald-500/30">
+                  🌿
+                </div>
+                <div>
+                  <h1 className="text-lg md:text-xl font-extrabold text-emerald-950 tracking-tight flex items-center gap-2">
+                    {curT.societyName}
+                  </h1>
+                  <p className="text-xs text-slate-500 font-medium">{curT.societySubtitle}</p>
+                </div>
+              </div>
+
+              {/* Navigation tabs */}
+              <nav className="hidden md:flex items-center gap-1">
+                {user && user.role === 'admin' ? (
+                  <button
+                    onClick={() => setActiveTab('admin')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 ${
+                      activeTab === 'admin'
+                        ? 'bg-emerald-800 text-white shadow-sm'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    🛡️ {curT.navAdmin}
+                  </button>
+                ) : null}
+
+                <button
+                  onClick={() => setActiveTab('tiers')}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    activeTab === 'tiers'
+                      ? 'bg-emerald-800 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {curT.navTiers}
+                </button>
+                <button
+                  onClick={() => setActiveTab('upload')}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    activeTab === 'upload'
+                      ? 'bg-emerald-800 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {curT.navUpload}
+                </button>
+                <button
+                  onClick={() => setActiveTab('status')}
+                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                    activeTab === 'status'
+                      ? 'bg-emerald-800 text-white shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  {curT.navStatus}
+                </button>
+              </nav>
+
+              {/* Auth Area */}
+              <div className="flex items-center gap-3">
+                {user ? (
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-slate-800">
+                        {lang === 'ar' ? user.full_name_ar : user.full_name_en}
+                      </div>
+                      <div className="text-xs text-emerald-700 font-semibold flex items-center justify-end gap-1">
+                        {user.role === 'admin' ? '🛡️ مسؤول النظام' : 'عضو مسجل'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition"
+                    >
+                      {curT.logout}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setAuthModal({ open: true, mode: 'login' })}
+                      className="px-4 py-2 text-sm font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg border border-emerald-200 transition"
+                    >
+                      {curT.login}
+                    </button>
+                    <button
+                      onClick={() => setAuthModal({ open: true, mode: 'register' })}
+                      className="px-4 py-2 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition"
+                    >
+                      {curT.register}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+
+            {/* TAB 1: MEMBERSHIP TIERS SELECTION */}
+            {activeTab === 'tiers' && (
+              <div className="space-y-8">
+                <div className="text-center max-w-3xl mx-auto space-y-2">
+                  <span className="inline-block px-3 py-1 text-xs font-bold text-emerald-800 bg-emerald-100 rounded-full">
+                    {curT.portalTitle}
+                  </span>
+                  <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                    {curT.selectTierTitle}
+                  </h2>
+                  <p className="text-slate-600 text-sm md:text-base">
+                    {curT.selectTierSubtitle}
+                  </p>
+                </div>
+
+                {/* 4 Tier Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                  {tiers.map((tItem) => {
+                    const isSelected = application && application.category === tItem.id;
+                    return (
+                      <div
+                        key={tItem.id}
+                        className={`bg-white rounded-2xl p-6 border transition-all flex flex-col justify-between relative shadow-sm hover:shadow-md ${
+                          isSelected
+                            ? 'border-emerald-600 ring-2 ring-emerald-500/20 bg-emerald-50/20'
+                            : 'border-slate-200'
+                        }`}
+                      >
+                        {isSelected && (
+                          <div className="absolute -top-3 right-4 bg-emerald-600 text-white text-xs font-extrabold px-3 py-0.5 rounded-full shadow-sm">
+                            ✓ {lang === 'ar' ? 'فئتك الحالية' : 'Selected Tier'}
+                          </div>
+                        )}
+
+                        <div className="space-y-4">
+                          <div>
+                            <span className="text-2xl">
+                              {tItem.id === 'student' ? '🎓' : tItem.id === 'graduate' ? '📐' : tItem.id === 'professional' ? '🌳' : '🏛️'}
+                            </span>
+                            <h3 className="text-xl font-bold text-slate-900 mt-2">
+                              {lang === 'ar' ? tItem.title_ar : tItem.title_en}
+                            </h3>
+                            <p className="text-xs font-medium text-emerald-700 mt-1">
+                              {lang === 'ar' ? tItem.subtitle_ar : tItem.subtitle_en}
+                            </p>
+                          </div>
+
+                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs text-slate-600 leading-relaxed">
+                            {lang === 'ar' ? tItem.description_ar : tItem.description_en}
+                          </div>
+
+                          <div className="border-t border-b border-slate-100 py-3 flex items-baseline justify-between">
+                            <span className="text-xs text-slate-500">{curT.annualFee}</span>
+                            <div className="text-lg font-black text-emerald-900">
+                              {tItem.annual_fee_egp} <span className="text-xs font-bold text-slate-500">{curT.egp}</span>
+                            </div>
+                          </div>
+
+                          {/* Dynamic Required Docs checklist */}
+                          <div>
+                            <div className="text-xs font-bold text-slate-700 mb-2">
+                              {curT.requiredDocsForTier}
+                            </div>
+                            <ul className="space-y-1.5 text-xs text-slate-600">
+                              {tItem.required_documents.map((doc) => (
+                                <li key={doc.id} className="flex items-start gap-1.5">
+                                  <span className="text-emerald-600 font-bold">✓</span>
+                                  <span>{lang === 'ar' ? doc.name_ar : doc.name_en}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 pt-4">
+                          <button
+                            onClick={() => selectTier(tItem.id)}
+                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition shadow-sm ${
+                              isSelected
+                                ? 'bg-emerald-800 text-white hover:bg-emerald-900'
+                                : 'bg-slate-900 text-white hover:bg-emerald-700'
+                            }`}
+                          >
+                            {isSelected
+                              ? (lang === 'ar' ? 'الانتقال إلى رفع المستندات ➔' : 'Proceed to Documents ➔')
+                              : curT.selectThisTier}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: DOCUMENT UPLOAD CENTER */}
+            {activeTab === 'upload' && (
+              <div className="max-w-4xl mx-auto space-y-6">
+                {!application ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-8 text-center space-y-4">
+                    <span className="text-4xl">⚠️</span>
+                    <h3 className="text-lg font-bold text-amber-900">
+                      {lang === 'ar' ? 'لم تختر فئة العضوية بعد' : 'Please select a membership tier first'}
+                    </h3>
+                    <p className="text-sm text-amber-700">
+                      {lang === 'ar'
+                        ? 'لكي نحدد لك قائمة المستندات المطلوبة بدقة، يرجى اختيار الفئة المناسبة أولاً.'
+                        : 'To display your customized document checklist, please choose your membership category.'}
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('tiers')}
+                      className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-sm"
+                    >
+                      {lang === 'ar' ? 'اختيار فئة العضوية' : 'Select Membership Tier'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Tier badge & switch option */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-2xl font-bold">
+                          📋
+                        </div>
+                        <div>
+                          <span className="text-xs text-slate-500 font-semibold">{curT.currentTier}</span>
+                          <h2 className="text-lg font-extrabold text-emerald-950">
+                            {activeTierObj ? (lang === 'ar' ? activeTierObj.title_ar : activeTierObj.title_en) : application.category}
+                          </h2>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('tiers')}
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg border border-emerald-200 transition"
+                      >
+                        🔄 {curT.changeTier}
+                      </button>
+                    </div>
+
+                    {/* Upload error banner if any */}
+                    {uploadError && (
+                      <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm font-semibold flex items-center justify-between">
+                        <span>⚠️ {uploadError}</span>
+                        <button onClick={() => setUploadError('')} className="text-rose-900 font-bold">✕</button>
+                      </div>
+                    )}
+
+                    {/* Header Info */}
+                    <div>
+                      <h3 className="text-xl font-extrabold text-slate-900">
+                        {curT.uploadCenterTitle}
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {curT.uploadCenterSubtitle}
+                      </p>
+                    </div>
+
+                    {/* Dynamic Checklist of Uploaders */}
+                    <div className="space-y-4">
+                      {activeTierObj && activeTierObj.required_documents.map((reqDoc) => {
+                        const existingDoc = application.documents.find(d => d.doc_type === reqDoc.id);
+                        const isUploading = uploadingDocType === reqDoc.id;
+
+                        return (
+                          <div
+                            key={reqDoc.id}
+                            className={`bg-white rounded-2xl p-5 border transition-all ${
+                              existingDoc
+                                ? existingDoc.status === 'rejected'
+                                  ? 'border-amber-400 bg-amber-50/20'
+                                  : 'border-emerald-200 bg-emerald-50/10'
+                                : 'border-slate-200'
+                            }`}
+                          >
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="text-base font-bold text-slate-900">
+                                    {lang === 'ar' ? reqDoc.name_ar : reqDoc.name_en}
+                                  </h4>
+                                  {reqDoc.is_required && (
+                                    <span className="text-rose-500 text-xs font-black">* إلزامي</span>
+                                  )}
+                                  {existingDoc && (
+                                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
+                                      existingDoc.status === 'verified'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : existingDoc.status === 'rejected'
+                                        ? 'bg-amber-100 text-amber-800'
+                                        : 'bg-blue-100 text-blue-800'
+                                    }`}>
+                                      {existingDoc.status === 'verified'
+                                        ? '✓ معتمد'
+                                        : existingDoc.status === 'rejected'
+                                        ? '⚠ يتطلب إعادة رفع'
+                                        : '⏱ تم الرفع - قيد الفحص'}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-500">
+                                  {lang === 'ar' ? reqDoc.description_ar : reqDoc.description_en}
+                                </p>
+                                {existingDoc && existingDoc.rejection_reason && (
+                                  <div className="text-xs text-amber-800 font-semibold bg-amber-50 p-2 rounded-lg border border-amber-200 mt-1">
+                                    سبب طلب التعديل: {existingDoc.rejection_reason}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Upload / Action Area */}
+                              <div className="flex items-center gap-3">
+                                {existingDoc ? (
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() => setPreviewModalUrl(existingDoc.preview_url)}
+                                      className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg border border-slate-300 transition"
+                                    >
+                                      👁️ {curT.previewDoc}
+                                    </button>
+                                    <a
+                                      href={`/api/documents/${existingDoc.id}/download`}
+                                      download
+                                      className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg border border-slate-300 transition"
+                                    >
+                                      ⬇️ {curT.downloadDoc}
+                                    </a>
+                                    <label className="text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg cursor-pointer transition shadow-sm">
+                                      {curT.reuploadDoc}
+                                      <input
+                                        type="file"
+                                        className="hidden"
+                                        accept={reqDoc.accepted_formats.map(f => `.${f}`).join(',')}
+                                        onChange={(e) => handleFileUpload(reqDoc.id, e.target.files[0])}
+                                      />
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <label className="text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl cursor-pointer transition shadow-sm flex items-center gap-2">
+                                    {isUploading ? (
+                                      <span>جاري الرفع... ⏳</span>
+                                    ) : (
+                                      <span>⬆️ رفع الملف</span>
+                                    )}
+                                    <input
+                                      type="file"
+                                      disabled={isUploading}
+                                      className="hidden"
+                                      accept={reqDoc.accepted_formats.map(f => `.${f}`).join(',')}
+                                      onChange={(e) => handleFileUpload(reqDoc.id, e.target.files[0])}
+                                    />
+                                  </label>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Final Submission Button */}
+                    <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div>
+                        <h4 className="text-base font-bold text-white">
+                          {lang === 'ar' ? 'هل انتهيت من رفع المستندات؟' : 'Finished uploading your documents?'}
+                        </h4>
+                        <p className="text-xs text-slate-300 mt-1">
+                          {lang === 'ar'
+                            ? 'اضغط هنا لتحويل ملفك إلى لجنة القيد والتدقيق الفني بالجمعية.'
+                            : 'Click to transfer your dossier to the ESLA membership committee.'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={submitForVerification}
+                        className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-6 py-3 rounded-xl font-extrabold text-sm shadow-lg transition"
+                      >
+                        🚀 {curT.submitForReview}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: APPLICATION STATUS DASHBOARD */}
+            {activeTab === 'status' && (
+              <div className="max-w-4xl mx-auto space-y-8">
+                {!application ? (
+                  <div className="bg-white rounded-2xl p-12 text-center border border-slate-200 shadow-sm space-y-4">
+                    <span className="text-5xl">🌿</span>
+                    <h3 className="text-2xl font-extrabold text-slate-900">
+                      {lang === 'ar' ? 'مرحباً بك في بوابة الجمعية المصرية لمعماريي تنسيق الموقع' : 'Welcome to the ESLA Membership Portal'}
+                    </h3>
+                    <p className="text-slate-600 max-w-lg mx-auto text-sm">
+                      {lang === 'ar'
+                        ? 'تتيح لك البوابة تقديم أوراق اعتماد عضويتك، ومتابعة فحص المستندات بواسطة اللجنة الاستشارية حتى إصدار بطاقة العضوية والشهادة الرسمية.'
+                        : 'Submit your membership accreditation documents and track verification in real-time until your official card is issued.'}
+                    </p>
+                    <div className="pt-2">
+                      <button
+                        onClick={() => {
+                          if (!user) {
+                            setAuthModal({ open: true, mode: 'register' });
+                          } else {
+                            setActiveTab('tiers');
+                          }
+                        }}
+                        className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-sm shadow-md transition"
+                      >
+                        {user ? curT.selectTierTitle : curT.register} ➔
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Visual Stepper Tracker */}
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                      <h3 className="text-base font-bold text-slate-900 mb-6">
+                        {curT.appStatusTitle}
+                      </h3>
+                      
+                      {/* Step circles */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="flex flex-col items-center text-center p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                          <div className="w-9 h-9 rounded-full bg-emerald-700 text-white font-bold flex items-center justify-center text-sm shadow">
+                            ✓
+                          </div>
+                          <span className="text-xs font-bold text-emerald-950 mt-2">{curT.step1}</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold">{application.category}</span>
+                        </div>
+
+                        <div className={`flex flex-col items-center text-center p-3 rounded-xl border ${
+                          application.documents.length > 0
+                            ? 'bg-emerald-50 border-emerald-200'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}>
+                          <div className={`w-9 h-9 rounded-full font-bold flex items-center justify-center text-sm ${
+                            application.documents.length > 0 ? 'bg-emerald-700 text-white' : 'bg-slate-300 text-slate-700'
+                          }`}>
+                            {application.documents.length > 0 ? '✓' : '2'}
+                          </div>
+                          <span className="text-xs font-bold text-slate-800 mt-2">{curT.step2}</span>
+                          <span className="text-[10px] text-slate-500 font-semibold">
+                            {application.documents.length} مستندات
+                          </span>
+                        </div>
+
+                        <div className={`flex flex-col items-center text-center p-3 rounded-xl border ${
+                          application.status === 'under_verification' || application.status === 'approved'
+                            ? 'bg-emerald-50 border-emerald-200'
+                            : application.status === 'needs_action'
+                            ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-400/20'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}>
+                          <div className={`w-9 h-9 rounded-full font-bold flex items-center justify-center text-sm ${
+                            application.status === 'approved'
+                              ? 'bg-emerald-700 text-white'
+                              : application.status === 'needs_action'
+                              ? 'bg-amber-500 text-white'
+                              : application.status === 'under_verification'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-slate-300 text-slate-700'
+                          }`}>
+                            {application.status === 'approved' ? '✓' : application.status === 'needs_action' ? '⚠' : '3'}
+                          </div>
+                          <span className="text-xs font-bold text-slate-800 mt-2">{curT.step3}</span>
+                          <span className="text-[10px] text-slate-500 font-semibold">
+                            {application.status === 'needs_action' ? 'مطلوب تعديل' : 'لجنة الفحص'}
+                          </span>
+                        </div>
+
+                        <div className={`flex flex-col items-center text-center p-3 rounded-xl border ${
+                          application.status === 'approved'
+                            ? 'bg-emerald-100 border-emerald-300 ring-2 ring-emerald-500/20'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}>
+                          <div className={`w-9 h-9 rounded-full font-bold flex items-center justify-center text-sm ${
+                            application.status === 'approved' ? 'bg-emerald-700 text-white' : 'bg-slate-300 text-slate-700'
+                          }`}>
+                            {application.status === 'approved' ? '★' : '4'}
+                          </div>
+                          <span className="text-xs font-bold text-slate-800 mt-2">{curT.step4}</span>
+                          <span className="text-[10px] text-slate-500 font-semibold">
+                            {application.status === 'approved' ? 'معتمد رسمي' : 'بانتظار القرار'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Alert Box */}
+                    <div className={`rounded-2xl p-6 border shadow-sm ${
+                      application.status === 'approved'
+                        ? 'bg-emerald-50 border-emerald-300'
+                        : application.status === 'needs_action'
+                        ? 'bg-amber-50 border-amber-300'
+                        : 'bg-white border-slate-200'
+                    }`}>
+                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-xs font-bold text-slate-500">حالة ملف العضوية:</span>
+                            {getStatusBadge(application.status)}
+                          </div>
+                          <h3 className="text-lg font-black text-slate-900">
+                            {lang === 'ar' ? (activeTierObj ? activeTierObj.title_ar : application.category) : application.category}
+                          </h3>
+                        </div>
+
+                        <button
+                          onClick={() => setActiveTab('upload')}
+                          className="px-4 py-2 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl transition shadow-sm"
+                        >
+                          📂 {lang === 'ar' ? 'عرض / تعديل المستندات المرفوعة' : 'Manage Uploaded Documents'}
+                        </button>
+                      </div>
+
+                      {/* Prominent Admin Notes Box if exists */}
+                      {application.admin_notes && (
+                        <div className="mt-4 pt-4 border-t border-slate-200/80">
+                          <div className="text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                            <span>📝</span>
+                            <span>{curT.adminNotesAlert}</span>
+                          </div>
+                          <div className="p-3 bg-white rounded-xl border border-slate-200 text-xs md:text-sm text-slate-800 leading-relaxed font-medium">
+                            {application.admin_notes}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 4: ADMIN DASHBOARD */}
+            {activeTab === 'admin' && user && user.role === 'admin' && (
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-slate-900">
+                      {curT.adminOverview}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      لجنة القيد واعتماد العضويات المهنية - الجمعية المصرية لمعماريي تنسيق الموقع
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={fetchAdminData}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition border border-slate-300"
+                    >
+                      🔄 تحديث البيانات
+                    </button>
+                  </div>
+                </div>
+
+                {/* Metrics Stats Cards */}
+                {adminStats && (
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                      <span className="text-xs font-semibold text-slate-500">{curT.statsTotal}</span>
+                      <div className="text-2xl font-black text-slate-900 mt-1">{adminStats.total_applications}</div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                      <span className="text-xs font-semibold text-blue-600">{curT.statsUnderVerification}</span>
+                      <div className="text-2xl font-black text-blue-700 mt-1">{adminStats.under_verification}</div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                      <span className="text-xs font-semibold text-emerald-600">{curT.statsApproved}</span>
+                      <div className="text-2xl font-black text-emerald-700 mt-1">{adminStats.approved}</div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                      <span className="text-xs font-semibold text-amber-600">{curT.statsNeedsAction}</span>
+                      <div className="text-2xl font-black text-amber-700 mt-1">{adminStats.needs_action}</div>
+                    </div>
+                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+                      <span className="text-xs font-semibold text-slate-500">{curT.statsPending}</span>
+                      <div className="text-2xl font-black text-slate-700 mt-1">{adminStats.pending_review}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Filters & Search Bar */}
+                <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="w-full md:w-96">
+                    <input
+                      type="text"
+                      placeholder={curT.searchPlaceholder}
+                      value={adminSearch}
+                      onChange={(e) => setAdminSearch(e.target.value)}
+                      className="w-full px-4 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    <select
+                      value={adminCategoryFilter}
+                      onChange={(e) => setAdminCategoryFilter(e.target.value)}
+                      className="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    >
+                      <option value="all">{curT.filterAll}</option>
+                      <option value="student">عضو طالب (Student)</option>
+                      <option value="graduate">عضو منتسب (Graduate)</option>
+                      <option value="professional">عضو عامل (Professional)</option>
+                      <option value="consultant">عضو استشاري (Consultant)</option>
+                    </select>
+
+                    <select
+                      value={adminStatusFilter}
+                      onChange={(e) => setAdminStatusFilter(e.target.value)}
+                      className="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                    >
+                      <option value="all">{curT.filterStatusAll}</option>
+                      <option value="pending_review">قيد المراجعة</option>
+                      <option value="under_verification">قيد التدقيق الفني</option>
+                      <option value="needs_action">مطلوب إجراء</option>
+                      <option value="approved">معتمد</option>
+                      <option value="rejected">مرفوض</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Applicants Table */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-right text-xs">
+                      <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                        <tr>
+                          <th className="py-3.5 px-4">{curT.colApplicant}</th>
+                          <th className="py-3.5 px-4">{curT.colTier}</th>
+                          <th className="py-3.5 px-4">المستندات المرفقة</th>
+                          <th className="py-3.5 px-4">{curT.colStatus}</th>
+                          <th className="py-3.5 px-4 text-center">{curT.colActions}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {adminApps.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="py-8 text-center text-slate-500 font-medium">
+                              لا توجد طلبات مطابقة لمعايير البحث
+                            </td>
+                          </tr>
+                        ) : (
+                          adminApps.map((app) => (
+                            <tr key={app.id} className="hover:bg-slate-50/70 transition">
+                              <td className="py-3.5 px-4">
+                                <div className="font-bold text-slate-900 text-sm">{app.user?.full_name_ar}</div>
+                                <div className="text-slate-500 text-[11px]">{app.user?.email}</div>
+                                <div className="text-emerald-700 text-[11px] font-semibold mt-0.5 flex items-center gap-1">
+                                  <span>📱 {app.user?.phone_whatsapp}</span>
+                                </div>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="inline-block font-bold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                  {app.category}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                <span className="font-semibold text-slate-700">
+                                  📁 {app.documents.length} ملفات مرفوعة
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4">
+                                {getStatusBadge(app.status)}
+                              </td>
+                              <td className="py-3.5 px-4 text-center">
+                                <button
+                                  onClick={() => {
+                                    setSelectedApp(app);
+                                    setAdminDecision({
+                                      status: app.status,
+                                      notes: app.admin_notes || ''
+                                    });
+                                  }}
+                                  className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white rounded-lg font-bold text-xs shadow-sm transition"
+                                >
+                                  🔍 {curT.reviewApplicantBtn}
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </main>
+
+          {/* APPLICANT REVIEW MODAL (FOR ADMIN) */}
+          {selectedApp && (
+            <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8">
+                {/* Modal Header */}
+                <div className="bg-emerald-900 text-white p-6 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-emerald-300 font-bold">ملف تدقيق العضوية رقم #{selectedApp.id}</span>
+                    <h3 className="text-xl font-extrabold mt-1">
+                      {selectedApp.user?.full_name_ar}
+                    </h3>
+                    <p className="text-xs text-emerald-200 font-medium">{selectedApp.user?.full_name_en}</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedApp(null)}
+                    className="w-9 h-9 rounded-full bg-emerald-800 hover:bg-emerald-700 flex items-center justify-center text-white font-bold transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                  {/* Personal info & WhatsApp shortcut */}
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div>
+                      <span className="text-slate-500 font-semibold">الفئة المقدم عليها:</span>
+                      <div className="text-sm font-bold text-slate-900">{selectedApp.category}</div>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-semibold">البريد الإلكتروني:</span>
+                      <div className="text-sm font-bold text-slate-900">{selectedApp.user?.email}</div>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 font-semibold">الهاتف / واتساب:</span>
+                      <div className="mt-0.5">
+                        <a
+                          href={`https://wa.me/${selectedApp.user?.phone_whatsapp?.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline"
+                        >
+                          🟢 {selectedApp.user?.phone_whatsapp}
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submitted Documents Inspection */}
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
+                      <span>📄</span> {curT.submittedDocs} ({selectedApp.documents.length})
+                    </h4>
+
+                    {selectedApp.documents.length === 0 ? (
+                      <p className="text-xs text-slate-500 italic bg-slate-50 p-4 rounded-xl">
+                        {curT.noDocsUploaded}
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {selectedApp.documents.map((doc) => (
+                          <div
+                            key={doc.id}
+                            className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-4 hover:border-emerald-300 transition"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">
+                                {doc.mime_type?.includes('pdf') ? '📕' : '🖼️'}
+                              </span>
+                              <div>
+                                <div className="text-xs font-bold text-slate-900">
+                                  {doc.doc_type} ({doc.original_filename})
+                                </div>
+                                <div className="text-[10px] text-slate-500">
+                                  {(doc.file_size / 1024).toFixed(1)} KB • {doc.status}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setPreviewModalUrl(doc.preview_url)}
+                                className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 transition"
+                              >
+                                👁️ {curT.previewDoc}
+                              </button>
+                              <a
+                                href={`/api/documents/${doc.id}/download`}
+                                download
+                                className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 transition"
+                              >
+                                ⬇️ {curT.downloadDoc}
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Committee Decision Panel */}
+                  <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200 space-y-4">
+                    <h4 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+                      <span>⚖️</span> {curT.decisionTitle}
+                    </h4>
+
+                    {/* Decision Radios */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setAdminDecision({ ...adminDecision, status: 'approved' })}
+                        className={`p-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                          adminDecision.status === 'approved'
+                            ? 'bg-emerald-700 text-white border-emerald-800 shadow-sm'
+                            : 'bg-white text-emerald-800 border-slate-200 hover:bg-emerald-50'
+                        }`}
+                      >
+                        ✓ {curT.decisionApprove}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAdminDecision({ ...adminDecision, status: 'needs_action' })}
+                        className={`p-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                          adminDecision.status === 'needs_action'
+                            ? 'bg-amber-600 text-white border-amber-700 shadow-sm'
+                            : 'bg-white text-amber-800 border-slate-200 hover:bg-amber-50'
+                        }`}
+                      >
+                        ⚠ {curT.decisionNeedsAction}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setAdminDecision({ ...adminDecision, status: 'rejected' })}
+                        className={`p-3 rounded-xl border text-xs font-extrabold transition flex items-center justify-center gap-1.5 ${
+                          adminDecision.status === 'rejected'
+                            ? 'bg-rose-700 text-white border-rose-800 shadow-sm'
+                            : 'bg-white text-rose-800 border-slate-200 hover:bg-rose-50'
+                        }`}
+                      >
+                        ✕ {curT.decisionReject}
+                      </button>
+                    </div>
+
+                    {/* Notes Textarea */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        ملاحظات وتوجيهات اللجنة للمتقدم:
+                      </label>
+                      <textarea
+                        rows="3"
+                        placeholder={curT.notesPlaceholder}
+                        value={adminDecision.notes}
+                        onChange={(e) => setAdminDecision({ ...adminDecision, notes: e.target.value })}
+                        className="w-full text-xs p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      ></textarea>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAdminSubmitDecision}
+                      className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white rounded-xl font-extrabold text-xs shadow-md transition"
+                    >
+                      💾 {curT.saveDecision}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* DOCUMENT PREVIEW MODAL */}
+          {previewModalUrl && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+                <div className="p-3 bg-slate-900 text-white flex items-center justify-between text-xs font-bold">
+                  <span>معاينة المستند الرسمي</span>
+                  <button
+                    onClick={() => setPreviewModalUrl(null)}
+                    className="w-7 h-7 bg-slate-800 hover:bg-slate-700 rounded-full flex items-center justify-center text-white"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex-1 bg-slate-100 p-2 overflow-hidden">
+                  <iframe
+                    src={previewModalUrl}
+                    className="w-full h-full rounded border-0"
+                    title="Document Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* AUTH MODAL (LOGIN / REGISTER) */}
+          {authModal.open && (
+            <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl p-6 relative">
+                <button
+                  onClick={() => setAuthModal({ open: false, mode: 'login' })}
+                  className="absolute top-5 left-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold transition"
+                >
+                  ✕
+                </button>
+
+                <div className="text-center space-y-1 mb-6">
+                  <span className="text-3xl">🌿</span>
+                  <h3 className="text-xl font-extrabold text-slate-900">
+                    {authModal.mode === 'login' ? curT.login : curT.register}
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    {curT.societyName}
+                  </p>
+                </div>
+
+                {authError && (
+                  <div className="p-3 mb-4 bg-rose-50 border border-rose-200 rounded-xl text-xs font-bold text-rose-700">
+                    ⚠️ {authError}
+                  </div>
+                )}
+
+                {authModal.mode === 'login' ? (
+                  <form onSubmit={handleLogin} className="space-y-4 text-xs">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.email}</label>
+                      <input
+                        type="email"
+                        required
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.password}</label>
+                      <input
+                        type="password"
+                        required
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-extrabold shadow-md transition"
+                    >
+                      {authLoading ? 'جاري التحقق...' : curT.login}
+                    </button>
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setAuthModal({ open: true, mode: 'register' })}
+                        className="text-emerald-700 hover:underline font-bold"
+                      >
+                        {curT.noAccount}
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <form onSubmit={handleRegister} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.fullNameAr}</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="مثال: م. أحمد محمد إبراهيم"
+                        value={registerForm.full_name_ar}
+                        onChange={(e) => setRegisterForm({ ...registerForm, full_name_ar: e.target.value })}
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.fullNameEn}</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Eng. Ahmed Mohamed Ibrahim"
+                        value={registerForm.full_name_en}
+                        onChange={(e) => setRegisterForm({ ...registerForm, full_name_en: e.target.value })}
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.phoneWhatsapp}</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+2010..."
+                        value={registerForm.phone_whatsapp}
+                        onChange={(e) => setRegisterForm({ ...registerForm, phone_whatsapp: e.target.value })}
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.email}</label>
+                      <input
+                        type="email"
+                        required
+                        value={registerForm.email}
+                        onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-slate-700 mb-1">{curT.password}</label>
+                      <input
+                        type="password"
+                        required
+                        minLength="6"
+                        value={registerForm.password}
+                        onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                        className="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-extrabold shadow-md transition mt-2"
+                    >
+                      {authLoading ? 'جاري التسجيل...' : curT.register}
+                    </button>
+                    <div className="text-center pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setAuthModal({ open: true, mode: 'login' })}
+                        className="text-emerald-700 hover:underline font-bold"
+                      >
+                        {curT.alreadyHaveAccount}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-400 text-xs py-8 border-t border-slate-800 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
+              <div>
+                <p className="font-bold text-slate-200">
+                  © 2026 {curT.societyName} (ESLA) - جميع الحقوق محفوظة
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  بوابة القيد واعتماد المهندسين واستشاريي عمارة البيئة وتنسيق الموقع بجمهورية مصر العربية
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-[11px] text-slate-400">
+                <span>معايير IFLA الدولية</span>
+                <span>•</span>
+                <span>نقابة المهندسين المصرية</span>
+                <span>•</span>
+                <span>قانون حماية البيانات</span>
+              </div>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    // Render the React application
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
