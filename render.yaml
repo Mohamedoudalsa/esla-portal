@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: esla-portal
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: ESLA_SECRET_KEY
+        generateValue: true
