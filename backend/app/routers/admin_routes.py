@@ -92,7 +92,7 @@ def update_application_status(
 @router.put("/documents/{doc_id}/status")
 def update_document_status(
     doc_id: int,
-    status_val: str = Query(..., regex="^(verified|rejected)$"),
+    status_val: str = Query(..., pattern="^(verified|rejected)$"),
     rejection_reason: Optional[str] = None,
     db: Session = Depends(get_db)
 ):

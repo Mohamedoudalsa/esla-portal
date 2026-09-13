@@ -2,7 +2,6 @@ import os
 import sys
 import uvicorn
 
-# Ensure backend directory is in sys.path
 root_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.join(root_dir, "backend")
 if backend_dir not in sys.path:
@@ -10,5 +9,5 @@ if backend_dir not in sys.path:
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
-    print(f"[*] Starting ESLA Portal on port {port}...")
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
+    print(f"[*] Starting ESLA Portal on 0.0.0.0:{port}...")
+    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=port, reload=False)
